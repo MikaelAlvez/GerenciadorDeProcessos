@@ -11,10 +11,10 @@ import mars.util.Binary;
 
 public class PCB {
 
-	 public static final int GLOBAL_POINTER_REGISTER = 28;
-     public static final int STACK_POINTER_REGISTER = 29;
+	 public final int GLOBAL_POINTER_REGISTER = 28;
+     public final int STACK_POINTER_REGISTER = 29;
   
-     private static Register [] regFile = 
+     private Register [] regFile = 
          { new Register("$zero", 0, 0), new Register("$at", 1, 0),
         	new Register("$v0", 2, 0),new Register("$v1", 3, 0),
         	new Register("$a0", 4, 0),new Register("$a1", 5, 0),
@@ -34,16 +34,16 @@ public class PCB {
         	new Register("$fp", 30, 0),new Register("$ra", 31, 0)
           };
         												  
-     private static Register programCounter= new Register("pc", 32, Memory.textBaseAddress); 
-     private static Register hi= new Register("hi", 33, 0);//this is an internal register with arbitrary number
-     private static Register lo= new Register("lo", 34, 0);// this is an internal register with arbitrary number
+     private Register programCounter= new Register("pc", 32, Memory.textBaseAddress); 
+     private Register hi= new Register("hi", 33, 0);//this is an internal register with arbitrary number
+     private Register lo= new Register("lo", 34, 0);// this is an internal register with arbitrary number
   		 
   
   	/**
   	  *  Method for displaying the register values for debugging.
   	  **/	 
   		 
-      public static void showRegisters(){
+      public void showRegisters(){
         for (int i=0; i< regFile.length; i++){
            System.out.println("Name: " + regFile[i].getName());
            System.out.println("Number: " + regFile[i].getNumber());
@@ -60,7 +60,7 @@ public class PCB {
   	  *   @param val The desired value for the register.
   	  **/
   	  
-      public static int updateRegister(int num, int val){
+      public int updateRegister(int num, int val){
         int old = 0;
         if(num == 0){
            //System.out.println("You can not change the value of the zero register.");
@@ -94,7 +94,7 @@ public class PCB {
   	  *   @param val The desired value for the register.
   	  **/
   	
-      public static void updateRegister(String reg, int val){
+      public void updateRegister(String reg, int val){
         if(reg.equals("zero")){
            //System.out.println("You can not change the value of the zero register.");
         }
@@ -113,7 +113,7 @@ public class PCB {
   	  *   @return The value of the given register.
   	  **/
   	
-      public static int getValue(int num){
+      public int getValue(int num){
         if(num==33){
            return hi.getValue();
         }
@@ -132,7 +132,7 @@ public class PCB {
   		  *   or -1 if no match.
   		  **/	
      		
-      public static int getNumber(String n){
+      public int getNumber(String n){
         int j=-1;
         for (int i=0; i< regFile.length; i++){
            if(regFile[i].getName().equals(n)) {
@@ -148,7 +148,7 @@ public class PCB {
   	  *   @return The set of registers.
   	  **/
   	
-      public static Register[] getRegisters(){
+      public Register[] getRegisters(){
         return regFile;
      }
      
@@ -158,7 +158,7 @@ public class PCB {
   	  *   @return The register object,or null if not found.
   	  **/
   	
-      public static Register getUserRegister(String Rname) {
+      public Register getUserRegister(String Rname) {
         Register reg = null;
         if (Rname.charAt(0) == '$') {
            try {
@@ -188,7 +188,7 @@ public class PCB {
   	  *   @param value The value to set the Program Counter to.
   	  **/
     
-      public static void initializeProgramCounter(int value){
+      public void initializeProgramCounter(int value){
         programCounter.setValue(value);
      }
   	
@@ -201,7 +201,7 @@ public class PCB {
   	 *  will set program counter to default reset value.
   	 **/
   	 
-      public static void initializeProgramCounter(boolean startAtMain) {  
+      public void initializeProgramCounter(boolean startAtMain) {  
         int mainAddr = Globals.symbolTable.getAddress(SymbolTable.getStartLabel());
         if (startAtMain && mainAddr != SymbolTable.NOT_FOUND && (Memory.inTextSegment(mainAddr) || Memory.inKernelTextSegment(mainAddr))) {
            initializeProgramCounter(mainAddr);
@@ -218,7 +218,7 @@ public class PCB {
   	  *   @return previous PC value
   	  **/
     
-      public static int setProgramCounter(int value){
+      public int setProgramCounter(int value){
         int old = programCounter.getValue();
         programCounter.setValue(value);
         if (Globals.getSettings().getBackSteppingEnabled()) {
@@ -232,7 +232,7 @@ public class PCB {
   	  *  @return The program counters value as an int.
   	  **/
   	 
-      public static int getProgramCounter(){
+      public int getProgramCounter(){
         return programCounter.getValue();
      }
   
@@ -240,7 +240,7 @@ public class PCB {
      *  Returns Register object for program counter.  Use with caution.
   	*  @return program counter's Register object.
   	*/
-      public static Register getProgramCounterRegister() {
+      public Register getProgramCounterRegister() {
         return programCounter;
      }
   	
@@ -249,7 +249,7 @@ public class PCB {
   	  *  @return The program counter's initial value
   	  **/
   	 
-      public static int getInitialProgramCounter(){
+      public int getInitialProgramCounter(){
         return programCounter.getResetValue();
      }
   	
@@ -262,7 +262,7 @@ public class PCB {
   	  *  <code>AbstractMarsToolAndApplication</code>.
   	  **/
   	
-      public static void resetRegisters(){
+      public void resetRegisters(){
         for(int i=0; i< regFile.length; i++){
            regFile[i].resetValue();
         }
@@ -275,7 +275,7 @@ public class PCB {
       *  Method to increment the Program counter in the general case (not a jump or branch).
   	 **/
   
-      public static void incrementPC(){
+      public void incrementPC(){
         programCounter.setValue(programCounter.getValue() + Instruction.INSTRUCTION_LENGTH);
      }
   
@@ -284,7 +284,7 @@ public class PCB {
   	 *  will add the given Observer to each one.  Currently does not apply to Program
   	 *  Counter.
   	 */
-      public static void addRegistersObserver(Observer observer) {
+      public void addRegistersObserver(Observer observer) {
         for (int i=0; i<regFile.length; i++) {
            regFile[i].addObserver(observer);
         }
@@ -297,7 +297,7 @@ public class PCB {
   	 *  will delete the given Observer from each one.  Currently does not apply to Program
   	 *  Counter.
   	 */
-      public static void deleteRegistersObserver(Observer observer) {
+      public void deleteRegistersObserver(Observer observer) {
         for (int i=0; i<regFile.length; i++) {
            regFile[i].deleteObserver(observer);
         }
@@ -318,7 +318,7 @@ public class PCB {
 		
 		// M E T O D O S
 		
-		// Copiar o conteúdo dos registradores físicos do hardware para a PCB
+		// Copia o conteúdo dos registradores físicos do hardware para a PCB
 		private int[] registerValues; // Array para armazenar os valores dos registradores físicos
 
 	    public PCB() {
@@ -333,7 +333,7 @@ public class PCB {
 	        }
 	    }
 	
-	    // Copiar o conteúdo da PCB para os registradores físicos
+	    // Copia o conteúdo da PCB para os registradores físicos
 	    private int[] registerValues; // Array para armazenar os valores dos registradores físicos
 
 	    public PCB() {
@@ -347,4 +347,21 @@ public class PCB {
 	            registers[i].setValue(registerValues[i]); // Copiar o valor de cada registrador a partir do array
 	        }
 	    }
+	    
+	    private int pid;
+		private String estado;
+
+		public PCB(int pid, String estado) {
+	    	this.pid = pid;
+	    	this.estado = estado;
+		}
+
+		public int getPid() {
+	    	return pid;
+		}
+
+		public String getEstado() {
+	    	return estado;
+		}
+
 }
