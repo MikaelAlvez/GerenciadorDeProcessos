@@ -1,8 +1,9 @@
 package mars.mips.SO.ProcessManager;
 
 public class TabelaDeProcessos {
-	private List<PCB> processos;
-
+	private static List<PCB> processos;
+	private static PCB executando;
+	
 	public TabelaDeProcessos() {
     	processos = new ArrayList<>();
 	}

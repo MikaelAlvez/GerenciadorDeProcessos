@@ -1,10 +1,9 @@
 package mars.mips.SO.ProcessManager;
 
 public class Escalonador {
-	private Queue<PCB> filaProcessos;
 
 	public Escalonador() {
-    	filaProcessos = new LinkedList<>();
+    	Processos = new LinkedList<>();
 	}
 
 	public void adicionarProcesso(PCB processo) {

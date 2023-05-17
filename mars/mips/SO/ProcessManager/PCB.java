@@ -6,44 +6,51 @@ import mars.Globals;
 import mars.assembler.SymbolTable;
 import mars.mips.hardware.Memory;
 import mars.mips.hardware.Register;
+import mars.mips.hardware.RegisterFile;
 import mars.mips.instructions.Instruction;
 import mars.util.Binary;
 
 public class PCB {
 
-	 public final int GLOBAL_POINTER_REGISTER = 28;
-     public final int STACK_POINTER_REGISTER = 29;
-  
-     private Register [] regFile = 
-         { new Register("$zero", 0, 0), new Register("$at", 1, 0),
-        	new Register("$v0", 2, 0),new Register("$v1", 3, 0),
-        	new Register("$a0", 4, 0),new Register("$a1", 5, 0),
-        	new Register("$a2", 6, 0),new Register("$a3", 7, 0),
-        	new Register("$t0", 8, 0),new Register("$t1", 9, 0),
-        	new Register("$t2", 10, 0),new Register("$t3", 11, 0), 
-        	new Register("$t4", 12, 0),new Register("$t5", 13, 0),
-        	new Register("$t6", 14, 0),new Register("$t7", 15, 0),
-        	new Register("$s0", 16, 0),new Register("$s1", 17, 0),
-        	new Register("$s2", 18, 0),new Register("$s3", 19, 0),
-        	new Register("$s4", 20, 0),new Register("$s5", 21, 0),
-        	new Register("$s6", 22, 0),new Register("$s7", 23, 0),
-        	new Register("$t8", 24, 0),new Register("$t9", 25, 0),
-        	new Register("$k0", 26, 0),new Register("$k1", 27, 0),
-        	new Register("$gp", GLOBAL_POINTER_REGISTER, Memory.globalPointer),
-        	new Register("$sp", STACK_POINTER_REGISTER, Memory.stackPointer),
-        	new Register("$fp", 30, 0),new Register("$ra", 31, 0)
-          };
-        												  
-     private Register programCounter= new Register("pc", 32, Memory.textBaseAddress); 
-     private Register hi= new Register("hi", 33, 0);//this is an internal register with arbitrary number
-     private Register lo= new Register("lo", 34, 0);// this is an internal register with arbitrary number
-  		 
-  
-  	/**
-  	  *  Method for displaying the register values for debugging.
-  	  **/	 
-  		 
-      public void showRegisters(){
+	public final int GLOBAL_POINTER_REGISTER = 28;
+	public final int STACK_POINTER_REGISTER = 29;
+
+	private Register[] regFile = { new Register("$zero", 0, 0), new Register("$at", 1, 0), new Register("$v0", 2, 0),
+			new Register("$v1", 3, 0), new Register("$a0", 4, 0), new Register("$a1", 5, 0), new Register("$a2", 6, 0),
+			new Register("$a3", 7, 0), new Register("$t0", 8, 0), new Register("$t1", 9, 0), new Register("$t2", 10, 0),
+			new Register("$t3", 11, 0), new Register("$t4", 12, 0), new Register("$t5", 13, 0),
+			new Register("$t6", 14, 0), new Register("$t7", 15, 0), new Register("$s0", 16, 0),
+			new Register("$s1", 17, 0), new Register("$s2", 18, 0), new Register("$s3", 19, 0),
+			new Register("$s4", 20, 0), new Register("$s5", 21, 0), new Register("$s6", 22, 0),
+			new Register("$s7", 23, 0), new Register("$t8", 24, 0), new Register("$t9", 25, 0),
+			new Register("$k0", 26, 0), new Register("$k1", 27, 0),
+			new Register("$gp", GLOBAL_POINTER_REGISTER, Memory.globalPointer),
+			new Register("$sp", STACK_POINTER_REGISTER, Memory.stackPointer), new Register("$fp", 30, 0),
+			new Register("$ra", 31, 0) };
+
+	private Register programCounter = new Register("pc", 32, Memory.textBaseAddress);
+	private Register hi = new Register("hi", 33, 0);// this is an internal register with arbitrary number
+	private Register lo = new Register("lo", 34, 0);// this is an internal register with arbitrary number
+	private int estado = 1;
+	private int PID;
+
+	/**
+	 * Method for displaying the register values for debugging.
+	 **/
+
+	public void carregarDoRegisterFile() {
+		regFile = RegisterFile.getRegisters();
+	}
+
+	public void salvarNoRegisterFile() {
+		for(int i=0; i< regFile.length; i++){
+	           RegisterFile.updateRegister(regFile[i].getNumber(), regFile[i].getValue());
+	    }
+	}
+    
+	
+	
+    public void showRegisters(){
         for (int i=0; i< regFile.length; i++){
            System.out.println("Name: " + regFile[i].getName());
            System.out.println("Number: " + regFile[i].getNumber());
@@ -262,7 +269,7 @@ public class PCB {
   	  *  <code>AbstractMarsToolAndApplication</code>.
   	  **/
   	
-      public void resetRegisters(){
+      public  void resetRegisters(){
         for(int i=0; i< regFile.length; i++){
            regFile[i].resetValue();
         }
@@ -305,63 +312,50 @@ public class PCB {
         lo.deleteObserver(observer);
      }
   }
-		//Estado do processo: 0 = pronto, 1 = em execução, 2 = bloqueado(Não será utilizado no momento).
-		private int processState;
-		
-		public void setProcessState(int state) {
-		    processState = state;
+
+	// Estado do processo: 0 = pronto, 1 = em execução, 2 = bloqueado(Não será
+	// utilizado no momento).
+	private int processState;
+
+	public void setProcessState(int state) {
+		processState = state;
+	}
+
+	public int getProcessState() {
+		return processState;
+	}
+
+	// M E T O D O S
+
+	// Copiar o conteúdo dos registradores físicos do hardware para a PCB
+	private int[] registerValues; // Array para armazenar os valores dos registradores físicos
+
+	public PCB() {
+		registerValues = new int[RegisterFile.NUM_REGISTERS]; // O tamanho do array depende do número de registradores
+																// físicos
+	}
+
+	public void copyRegisterValues() {
+		Register[] registers = RegisterFile.getRegisters(); // Obter os registradores físicos do hardware
+
+		for (int i = 0; i < registers.length; i++) {
+			registerValues[i] = registers[i].getValue(); // Copiar o valor de cada registrador para o array
 		}
-		
-		public int getProcessState() {
-		    return processState;
+	}
+
+	// Copiar o conteúdo da PCB para os registradores físicos
+	private int[] registerValues; // Array para armazenar os valores dos registradores físicos
+
+	public PCB() {
+		registerValues = new int[RegisterFile.NUM_REGISTERS]; // O tamanho do array depende do número de registradores
+																// físicos
+	}
+
+	public void copyRegisterValuesToHardware() {
+		Register[] registers = RegisterFile.getRegisters(); // Obter os registradores físicos do hardware
+
+		for (int i = 0; i < registers.length; i++) {
+			registers[i].setValue(registerValues[i]); // Copiar o valor de cada registrador a partir do array
 		}
-		
-		// M E T O D O S
-		
-		// Copia o conteúdo dos registradores físicos do hardware para a PCB
-		private int[] registerValues; // Array para armazenar os valores dos registradores físicos
-
-	    public PCB() {
-	        registerValues = new int[RegisterFile.NUM_REGISTERS]; // O tamanho do array depende do número de registradores físicos
-	    }
-
-	    public void copyRegisterValues() {
-	        Register[] registers = RegisterFile.getRegisters(); // Obter os registradores físicos do hardware
-
-	        for (int i = 0; i < registers.length; i++) {
-	            registerValues[i] = registers[i].getValue(); // Copiar o valor de cada registrador para o array
-	        }
-	    }
-	
-	    // Copia o conteúdo da PCB para os registradores físicos
-	    private int[] registerValues; // Array para armazenar os valores dos registradores físicos
-
-	    public PCB() {
-	        registerValues = new int[RegisterFile.NUM_REGISTERS]; // O tamanho do array depende do número de registradores físicos
-	    }
-
-	    public void copyRegisterValuesToHardware() {
-	        Register[] registers = RegisterFile.getRegisters(); // Obter os registradores físicos do hardware
-
-	        for (int i = 0; i < registers.length; i++) {
-	            registers[i].setValue(registerValues[i]); // Copiar o valor de cada registrador a partir do array
-	        }
-	    }
-	    
-	    private int pid;
-		private String estado;
-
-		public PCB(int pid, String estado) {
-	    	this.pid = pid;
-	    	this.estado = estado;
-		}
-
-		public int getPid() {
-	    	return pid;
-		}
-
-		public String getEstado() {
-	    	return estado;
-		}
-
+	}
 }
