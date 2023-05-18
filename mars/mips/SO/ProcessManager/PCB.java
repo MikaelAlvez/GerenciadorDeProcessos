@@ -31,7 +31,8 @@ public class PCB {
 	private Register programCounter = new Register("pc", 32, Memory.textBaseAddress);
 	private Register hi = new Register("hi", 33, 0);// this is an internal register with arbitrary number
 	private Register lo = new Register("lo", 34, 0);// this is an internal register with arbitrary number
-	private int estado = 1;
+	private int processState;
+	private static int PIDCONT = 0;
 	private int PID;
 
 	/**
@@ -315,8 +316,7 @@ public class PCB {
 
 	// Estado do processo: 0 = pronto, 1 = em execução, 2 = bloqueado(Não será
 	// utilizado no momento).
-	private int processState;
-
+	
 	public void setProcessState(int state) {
 		processState = state;
 	}
@@ -331,6 +331,8 @@ public class PCB {
 	private int[] registerValues; // Array para armazenar os valores dos registradores físicos
 
 	public PCB() {
+		this.PID = this.PIDCONT;
+		this.PIDCONT++;
 		registerValues = new int[RegisterFile.NUM_REGISTERS]; // O tamanho do array depende do número de registradores
 																// físicos
 	}
